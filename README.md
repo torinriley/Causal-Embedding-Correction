@@ -66,14 +66,45 @@ To evaluate the success of the residualization:
 - **Visualizations:**
   - Side-by-side scatter plots of the original and confounder embeddings visually validate the removal of treatment leakage.
     
-<img width="1406" alt="results" src="https://github.com/user-attachments/assets/53de89c0-1873-414c-aa54-70b6f34c84d9" />
+<table>
+  <tr>
+    <td>
+      <img src="https://github.com/user-attachments/assets/948b1825-5d10-4c8a-886f-40f8b56f0215" alt="Confounder Embeddings Visualization" width="400"/>
+    </td>
+    <td>
+      <img src="https://github.com/user-attachments/assets/78a37edd-59fc-4093-8037-cd81daef0e20" alt="Original Embeddings Visualization" width="400"/>
+    </td>
+  </tr>
+  <tr>
+    <td style="text-align: center;">Confounder Embeddings Visualization</td>
+    <td style="text-align: center;">Original Embeddings Visualization</td>
+  </tr>
+</table>
+
+
 
 - **Distribution of Confounder Embedding Residuals:**
   
-  - This histogram shows the distribution of residual values in the confounder embeddings after removing treatment-related components using a Random Forest regressor. The residuals are tightly centered around zero, indicating minimal correlation with the treatment features. This result supports the efficacy of the technique by demonstrating that the treatment-related signal has been effectively removed, ensuring the embeddings are treatment-agnostic and suitable for unbiased causal analysis.
+  - These histograms show the distribution of residual values in the confounder embeddings after removing treatment-related components using a Random Forest regressor. The residuals are tightly centered around zero, indicating minimal correlation with the treatment features. This result supports the efficacy of the technique by demonstrating that the treatment-related signal has been effectively removed, ensuring the embeddings are treatment-agnostic and suitable for unbiased causal analysis.
     
-<img width="500" alt="Screenshot 2024-12-27 at 11 10 14 PM" src="https://github.com/user-attachments/assets/25b2f4c3-2c15-48a8-910a-b62aacc54fcc" />
-
+<table>
+  <tr>
+    <td>
+      <img width="300" alt="Screenshot 2024-12-28 at 5 08 47 PM" src="https://github.com/user-attachments/assets/9e5f6adb-5c49-4166-8da1-0c74d4dc0430" />
+    </td>
+    <td>
+      <img width="300" alt="Screenshot 2024-12-28 at 5 09 05 PM" src="https://github.com/user-attachments/assets/26328cec-3977-419c-bb6e-e3f67f1faaa2" />
+    </td>
+    <td>
+      <img width="300" alt="Screenshot 2024-12-28 at 5 09 20 PM" src="https://github.com/user-attachments/assets/95ca97ce-c09a-4e05-9f81-4c932b833f51" />
+    </td>
+  </tr>
+  <tr>
+    <td style="text-align: center;">bert-base-uncased</td>
+    <td style="text-align: center;">roberta-base</td>
+    <td style="text-align: center;">distilbert-base-uncased</td>
+  </tr>
+</table>
 
 
 ---
