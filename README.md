@@ -65,6 +65,9 @@ To evaluate the success of the residualization:
 
 - **Visualizations:**
   - Side-by-side scatter plots of the original and confounder embeddings visually validate the removal of treatment leakage.
+    
+<img width="1406" alt="results" src="https://github.com/user-attachments/assets/53de89c0-1873-414c-aa54-70b6f34c84d9" />
+
 
 ---
 
