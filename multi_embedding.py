@@ -111,6 +111,16 @@ for model_name in models_to_test:
     plt.savefig(os.path.join(model_dir, f"{model_name}_confounder_embeddings_visualization.png"))
     plt.show()
 
+    residuals = confounder_embeddings.flatten()
+    plt.figure(figsize=(8, 6))
+    sns.histplot(residuals, kde=True, bins=30, color='blue')
+    plt.title(f"{model_name} Confounder Embedding Residuals Distribution", fontsize=14)
+    plt.xlabel("Residual Value", fontsize=12)
+    plt.ylabel("Frequency", fontsize=12)
+    plt.tight_layout()
+    plt.savefig(os.path.join(model_dir, f"{model_name}_confounder_residuals_distribution.png"))
+    plt.show()
+
 results_df = pd.DataFrame(results)
 print(results_df)
 
