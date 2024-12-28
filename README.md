@@ -39,6 +39,10 @@ To isolate and remove treatment-related information from embeddings, we use **Ra
    - The predicted treatment components are subtracted from the original embeddings to compute the residuals.
    - These residuals are referred to as **treatment-agnostic embeddings**, as they no longer encode treatment information.
 
+
+3.1.  **Note on Ressidulization:**
+   - Residualization is often preferred over complete removal of treatment components because it strikes a balance between reducing treatment-related bias and preserving meaningful information in the data. By predicting and removing only the treatment-predictable components from embeddings, residualization ensures that treatment-induced clustering is minimized, avoiding leakage, while retaining the rich, treatment-agnostic structure of the embeddings. This approach is particularly effective for tasks where treatment effects may introduce unwanted bias but some inherent variability in the data is still important for downstream applications. Unlike masking, residualization avoids over-removal, ensuring that embeddings remain informative and generalizable.
+
 ---
 
 ### **4. Validating the Residualization Process**
