@@ -87,8 +87,9 @@ for model_name in models_to_test:
     sns.scatterplot(
         data=original_df,
         x="Dim1", y="Dim2", hue="Treatment",
-        palette="coolwarm", edgecolor="black", alpha=0.8
+        palette="coolwarm", edgecolor="black", alpha=0.8, legend='full'
     )
+    plt.legend(loc='upper left')
     plt.title(f"{model_name} Original Embeddings (Showing Treatment Leakage)", fontsize=14)
     plt.xlabel("Dimension 1", fontsize=12)
     plt.ylabel("Dimension 2", fontsize=12)
@@ -100,8 +101,9 @@ for model_name in models_to_test:
     sns.scatterplot(
         data=confounder_df,
         x="Dim1", y="Dim2", hue="Treatment",
-        palette="coolwarm", edgecolor="black", alpha=0.8
+        palette="coolwarm", edgecolor="black", alpha=0.8, legend='full'
     )
+    plt.legend(loc='upper left')
     plt.title(f"{model_name} Confounder Embeddings (Treatment-Agnostic)", fontsize=14)
     plt.xlabel("Dimension 1", fontsize=12)
     plt.ylabel("Dimension 2", fontsize=12)
