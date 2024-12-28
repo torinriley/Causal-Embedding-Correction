@@ -68,6 +68,13 @@ To evaluate the success of the residualization:
     
 <img width="1406" alt="results" src="https://github.com/user-attachments/assets/53de89c0-1873-414c-aa54-70b6f34c84d9" />
 
+- **Distribution of Confounder Embedding Residuals:**
+  
+  - This histogram shows the distribution of residual values in the confounder embeddings after removing treatment-related components using a Random Forest regressor. The residuals are tightly centered around zero, indicating minimal correlation with the treatment features. This result supports the efficacy of the technique by demonstrating that the treatment-related signal has been effectively removed, ensuring the embeddings are treatment-agnostic and suitable for unbiased causal analysis.
+    
+<img width="500" alt="Screenshot 2024-12-27 at 11 10 14 PM" src="https://github.com/user-attachments/assets/25b2f4c3-2c15-48a8-910a-b62aacc54fcc" />
+
+
 
 ---
 
