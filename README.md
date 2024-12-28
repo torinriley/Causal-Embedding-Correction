@@ -110,6 +110,7 @@ To evaluate the success of the residualization:
   </tr>
 </table>
 
+See complete results here: [Results Summary](https://github.com/torinriley/Causal-Embedding-Correction/blob/main/results/Results_Summary.md)
 
 ---
 
