@@ -137,5 +137,7 @@ This project demonstrates a robust methodology to mitigate treatment leakage in 
 
 By ensuring embeddings are treatment-agnostic but not treatment-blind, this approach enhances the reliability of causal inference models, enabling more accurate estimation of causal effects.
 
-For complete results, see: [Results Summary](https://github.com/torinriley/Causal-Embedding-Correction/blob/main/results/Results_Summary.md)
+For complete results: [Results Summary](https://github.com/torinriley/Causal-Embedding-Correction/blob/main/results/Results_Summary.md)
+
+See a disclaimer here: [Disclaimer](https://github.com/torinriley/Causal-Embedding-Correction/blob/main/Disclaimer.md)
 
