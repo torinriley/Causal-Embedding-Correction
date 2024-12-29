@@ -45,13 +45,25 @@ To isolate and remove treatment-related information from embeddings, we use **Ra
      **Steps:**
      
    - A logistic regression model estimates the propensity scores, which represent the probability of receiving treatment given observed covariates.
-These scores are computed for each instance in the dataset based on the high-dimensional treatment features.
-Evaluate Propensity Scores:
-
-   - The AUC (Area Under the Curve) of the propensity model is calculated to validate its effectiveness.
-High AUC values indicate that the model accurately captures covariate information.
+     These scores are computed for each instance in the dataset based on the high-dimensional treatment features.
+     
+   - **Evaluate Propensity Scores:**
+     - The AUC (Area Under the Curve) of the propensity model is calculated to validate its effectiveness.
+     - High AUC values indicate that the model accurately captures covariate information.
 
    - The propensity scores are used to create inverse propensity weights. These weights adjust for covariate imbalances between treatment and control groups, mitigating confounding bias.
+
+5. **Sensitivity Analysis:**
+   - To assess the robustness of treatment effect estimates to unobserved confounders, sensitivity analysis simulates potential unmeasured factors and evaluates their impact on propensity scores.
+
+6. **Positivity Check:**
+   - The methodology ensures that the positivity assumption is not violated by checking for extreme propensity scores (close to 0 or 1). Observations with extreme scores are flagged to mitigate assumption violations.
+
+7. **Balancing Diagnostics:**
+   - Standardized Mean Differences (SMD) before and after weighting are visualized to assess covariate balance between treatment groups.
+
+8. **Uncertainty Quantification:**
+   - Bootstrapping is used to estimate confidence intervals for treatment effect estimates, providing robust uncertainty measures.
 
 ---
 
@@ -73,6 +85,17 @@ A comparison of total variance in the embeddings before and after partial residu
 #### **Distribution of Residuals**
 Histograms of residuals confirm the removal of treatment-related components, as residuals are tightly centered around zero.
 
+#### **Balancing Diagnostics**
+Bar plots of standardized mean differences (SMD) before and after weighting illustrate the improved covariate balance achieved through propensity score weighting.
+
+#### **Sensitivity Analysis**
+Simulations with unobserved confounders quantify the robustness of propensity score estimates to unmeasured variables.
+
+#### **Mutual Information Analysis**
+We measure the mutual information between embeddings and:
+- **Treatment Features:** Quantifies treatment leakage in original embeddings.
+- **Outcome:** Validates the extent to which embeddings capture predictive information about the outcome.
+
 ---
 
 ## Results
@@ -87,10 +110,19 @@ Histograms of residuals confirm the removal of treatment-related components, as 
 - **Visualizations:**
   - Scatter plots of original and adjusted embeddings and the distribution of residuals provide qualitative and quantitative evidence of the methodology's success.
 
+- **Positivity Check:**
+  - No extreme propensity scores detected, indicating that the positivity assumption holds.
+
+- **Mutual Information Results:**
+  - Mutual Information with Treatment: \(0.449\)
+  - Mutual Information with Outcome: \(0.418\)
+
+- **Estimated Causal Effect:**
+  - Causal Effect Estimate: \(0.0002\) with 95% CI: \([0.0002, 0.0003]\)
+
 ---
 
 # Embedding Analysis Visualizations
-
 
 ## Variance and Correlation Comparison
 <table>
@@ -107,8 +139,6 @@ Histograms of residuals confirm the removal of treatment-related components, as 
         </td>
     </tr>
 </table>
-
-
 
 ## Embedding Scatter Plots
 <table>
@@ -133,11 +163,12 @@ Histograms of residuals confirm the removal of treatment-related components, as 
 This project demonstrates a robust methodology to mitigate treatment leakage in text embeddings using the following:
 1. **Random Forest Regression** to model and remove treatment-related components.
 2. **Partial Residualization** to balance treatment de-biasing with the retention of meaningful data relationships.
-3. **Validation** through statistical metrics and robust visualizations.
+3. **Propensity Score Integration** to address confounding bias and improve covariate balance.
+4. **Sensitivity Analysis and Diagnostics** to validate assumptions and ensure robust causal inference.
+5. **Uncertainty Quantification** using bootstrapping to provide confidence intervals for treatment effect estimates.
 
 By ensuring embeddings are treatment-agnostic but not treatment-blind, this approach enhances the reliability of causal inference models, enabling more accurate estimation of causal effects.
 
 For complete results: [Results Summary](https://github.com/torinriley/Causal-Embedding-Correction/blob/main/results/Results_Summary.md)
 
 See a disclaimer here: [Disclaimer](https://github.com/torinriley/Causal-Embedding-Correction/blob/main/Disclaimer.md)
-
