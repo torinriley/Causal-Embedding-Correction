@@ -84,7 +84,6 @@ def plot_variance_comparison(original_var, adjusted_var, model_name):
     plt.show()
 
 
-# Robust graphing for correlation comparison
 def plot_correlation_comparison(mean_corr_original, mean_corr_adjusted, model_name):
     """Plot a bar chart comparing mean correlations before and after adjustment."""
     plt.figure(figsize=(8, 6))
@@ -96,7 +95,6 @@ def plot_correlation_comparison(mean_corr_original, mean_corr_adjusted, model_na
     plt.savefig(f"{model_name}_correlation_comparison.png")
     plt.show()
 
-# Scatter plot of embeddings
 def plot_embeddings_scatter(embeddings, treatment, model_name, embedding_type):
     tsne = TSNE(n_components=2, random_state=42, perplexity=30)
     reduced = tsne.fit_transform(embeddings)
@@ -112,7 +110,6 @@ def plot_embeddings_scatter(embeddings, treatment, model_name, embedding_type):
     plt.savefig(f"{model_name}_{embedding_type}_embeddings_scatter.png")
     plt.show()
 
-# Plot residuals distribution
 def plot_residuals_distribution(residuals, model_name):
     plt.figure(figsize=(8, 6))
     sns.histplot(residuals, kde=True, bins=30, color="blue")
@@ -123,7 +120,6 @@ def plot_residuals_distribution(residuals, model_name):
     plt.savefig(f"{model_name}_residuals_distribution.png")
     plt.show()
 
-# Process models
 results = []
 
 for model_name in models_to_test:
@@ -132,24 +128,19 @@ for model_name in models_to_test:
     model = AutoModel.from_pretrained(model_name)
     model.eval()
 
-    # Extract original embeddings
     original_embeddings = extract_embeddings(texts, tokenizer, model)
 
     # Fit RandomForestRegressor to predict treatment components
     regressor = RandomForestRegressor(n_estimators=100, random_state=42)
     regressor.fit(treatment_features, original_embeddings)
 
-    # Predict treatment-related components
     predicted_treatment_components = regressor.predict(treatment_features)
 
-    # Apply partial residualization
     alpha = 0.5  # Fraction of treatment components to remove
     adjusted_embeddings = partial_residualization(original_embeddings, predicted_treatment_components, alpha=alpha)
 
-    # Calculate propensity scores and weights
     propensity_scores, weights = calculate_propensity_scores(treatment_features, outcome)
 
-    # Calculate descriptive statistics
     original_var = original_embeddings.var(axis=0)
     adjusted_var = adjusted_embeddings.var(axis=0)
     mean_corr_original = calculate_correlation(original_embeddings, treatment_features)
@@ -162,21 +153,19 @@ for model_name in models_to_test:
     print(f"Total Variance (Adjusted): {adjusted_var.sum():.4f}")
     print(f"Propensity Scores AUC: {roc_auc_score(outcome, propensity_scores):.4f}")
 
-    # Plot variance comparison
     plot_variance_comparison(original_var, adjusted_var, model_name)
 
-    # Plot correlation comparison
     plot_correlation_comparison(mean_corr_original, mean_corr_adjusted, model_name)
 
-    # Scatter plot for embeddings
+    
     plot_embeddings_scatter(original_embeddings, treatment_features, model_name, "Original")
     plot_embeddings_scatter(adjusted_embeddings, treatment_features, model_name, "Adjusted")
 
-    # Plot residuals distribution
+    
     residuals = (original_embeddings - adjusted_embeddings).flatten()
     plot_residuals_distribution(residuals, model_name)
 
-    # Append results
+
     results.append({
         "Model": model_name,
         "Mean_Correlation_Original": mean_corr_original,
@@ -186,10 +175,9 @@ for model_name in models_to_test:
         "Propensity_Scores_AUC": roc_auc_score(outcome, propensity_scores)
     })
 
-# Compile results into a DataFrame
 results_df = pd.DataFrame(results)
 print(results_df)
 
-# Save results for further analysis
+
 results_df.to_csv("enhanced_partial_residualization_results.csv", index=False)
 
