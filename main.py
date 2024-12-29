@@ -4,29 +4,31 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.manifold import TSNE
-from sklearn.linear_model import LinearRegression, LogisticRegression
-from sklearn.metrics import r2_score, roc_auc_score
-from sklearn.feature_selection import mutual_info_regression
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import roc_auc_score
 from sklearn.preprocessing import StandardScaler
 import torch
 from transformers import AutoTokenizer, AutoModel
+from sklearn.feature_selection import mutual_info_regression
+
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-models_to_test = ["bert-base-uncased", "roberta-base", "distilbert-base-uncased"]
+model_name = "bert-base-uncased"
 
-np.random.seed(42)  
-review_lengths = np.random.randint(5, 100, size=100)  # Random lengths between 5 and 100 words
-treatment_features = np.random.rand(100, 10)  # 10-dimensional synthetic treatment variable
-outcome = (treatment_features[:, 0] * 2 + np.random.normal(0, 0.1, 100) > 1).astype(int)  # Binary outcome
+np.random.seed(42)
+
+# generate synthetic dataset
+review_lengths = np.random.randint(5, 100, size=100) 
+treatment_features = np.random.rand(100, 10) 
+outcome = (treatment_features[:, 0] * 2 + np.random.normal(0, 0.1, 100) > 1).astype(int) 
 
 texts = [
     f"This is a review of length {length} words with {'great' if treatment_features[i, 0] > 0.5 else 'poor'} content."
     for i, length in enumerate(review_lengths)
 ]
 
-# Function to extract embeddings from text
+# function to extract embeddings from text
 def extract_embeddings(texts, tokenizer, model):
     embeddings = []
     for text in texts:
@@ -36,148 +38,126 @@ def extract_embeddings(texts, tokenizer, model):
             embeddings.append(outputs.last_hidden_state.mean(dim=1).squeeze(0).numpy())
     return np.array(embeddings)
 
-# Function to apply partial residualization
+# function to apply partial residualization
 def partial_residualization(original_embeddings, predicted_treatment_components, alpha=0.5):
     """
     Perform partial residualization to retain some treatment information while reducing bias.
-
-    Parameters:
-    - original_embeddings: The original high-dimensional embeddings.
-    - predicted_treatment_components: The embeddings predicted from treatment.
-    - alpha: Proportion of treatment-related components to remove (0 to 1).
-
-    Returns:
-    - Adjusted embeddings with reduced treatment bias.
     """
     return original_embeddings - alpha * predicted_treatment_components
 
-# Function to calculate propensity scores and weights
+# function to calculate propensity scores and weights
 def calculate_propensity_scores(treatment_features, outcome):
-    """Calculate propensity scores using logistic regression and compute weights."""
     model = LogisticRegression()
     model.fit(treatment_features, outcome)
     propensity_scores = model.predict_proba(treatment_features)[:, 1]
-    weights = outcome / propensity_scores + (1 - outcome) / (1 - propensity_scores)
+    weights = np.where(outcome == 1, 1 / propensity_scores, 1 / (1 - propensity_scores))
     return propensity_scores, weights
 
-# Correlation calculation
-def calculate_correlation(embeddings, treatment):
-    """Calculate mean absolute correlation between embeddings and treatment features."""
-    correlations = []
-    for dim in range(embeddings.shape[1]):
-        for t_dim in range(treatment.shape[1]):
-            corr = np.corrcoef(embeddings[:, dim], treatment[:, t_dim])[0, 1]
-            correlations.append(abs(corr))
-    return np.mean(correlations)
-
-
-# Variance comparison
-def plot_variance_comparison(original_var, adjusted_var, model_name):
-    """Plot a bar chart comparing total variance before and after adjustment."""
-    plt.figure(figsize=(8, 6))
-    sns.barplot(x=["Original", "Adjusted"], y=[original_var.sum(), adjusted_var.sum()], alpha=0.7)
-    plt.title(f"{model_name} Total Variance Comparison")
-    plt.ylabel("Total Variance")
-    plt.xlabel("Type")
-    plt.tight_layout()
-    plt.savefig(f"{model_name}_variance_comparison.png")
-    plt.show()
-
-
-def plot_correlation_comparison(mean_corr_original, mean_corr_adjusted, model_name):
-    """Plot a bar chart comparing mean correlations before and after adjustment."""
-    plt.figure(figsize=(8, 6))
-    sns.barplot(x=["Original", "Adjusted"], y=[mean_corr_original, mean_corr_adjusted], alpha=0.7, palette="muted")
-    plt.title(f"{model_name} Mean Correlation Comparison")
-    plt.ylabel("Mean Correlation")
-    plt.xlabel("Type")
-    plt.tight_layout()
-    plt.savefig(f"{model_name}_correlation_comparison.png")
-    plt.show()
-
-def plot_embeddings_scatter(embeddings, treatment, model_name, embedding_type):
-    tsne = TSNE(n_components=2, random_state=42, perplexity=30)
-    reduced = tsne.fit_transform(embeddings)
-    df = pd.DataFrame({
-        "Dim1": reduced[:, 0],
-        "Dim2": reduced[:, 1],
-        "Treatment": np.argmax(treatment, axis=1) if treatment.ndim > 1 else treatment
-    })
-    plt.figure(figsize=(8, 6))
-    sns.scatterplot(data=df, x="Dim1", y="Dim2", hue="Treatment", palette="coolwarm", alpha=0.8, edgecolor="black")
-    plt.title(f"{model_name} {embedding_type} Embeddings Scatter Plot")
-    plt.tight_layout()
-    plt.savefig(f"{model_name}_{embedding_type}_embeddings_scatter.png")
-    plt.show()
-
-def plot_residuals_distribution(residuals, model_name):
-    plt.figure(figsize=(8, 6))
-    sns.histplot(residuals, kde=True, bins=30, color="blue")
-    plt.title(f"{model_name} Confounder Embedding Residuals Distribution")
-    plt.xlabel("Residual Value")
-    plt.ylabel("Frequency")
-    plt.tight_layout()
-    plt.savefig(f"{model_name}_residuals_distribution.png")
-    plt.show()
-
-results = []
-
-for model_name in models_to_test:
-    print(f"Processing model: {model_name}")
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModel.from_pretrained(model_name)
-    model.eval()
-
-    original_embeddings = extract_embeddings(texts, tokenizer, model)
-
-    # Fit RandomForestRegressor to predict treatment components
-    regressor = RandomForestRegressor(n_estimators=100, random_state=42)
-    regressor.fit(treatment_features, original_embeddings)
-
-    predicted_treatment_components = regressor.predict(treatment_features)
-
-    alpha = 0.5  # Fraction of treatment components to remove
-    adjusted_embeddings = partial_residualization(original_embeddings, predicted_treatment_components, alpha=alpha)
-
-    propensity_scores, weights = calculate_propensity_scores(treatment_features, outcome)
-
-    original_var = original_embeddings.var(axis=0)
-    adjusted_var = adjusted_embeddings.var(axis=0)
-    mean_corr_original = calculate_correlation(original_embeddings, treatment_features)
-    mean_corr_adjusted = calculate_correlation(adjusted_embeddings, treatment_features)
-
-    print(f"Model: {model_name}")
-    print(f"Mean Correlation (Original): {mean_corr_original:.4f}")
-    print(f"Mean Correlation (Adjusted): {mean_corr_adjusted:.4f}")
-    print(f"Total Variance (Original): {original_var.sum():.4f}")
-    print(f"Total Variance (Adjusted): {adjusted_var.sum():.4f}")
-    print(f"Propensity Scores AUC: {roc_auc_score(outcome, propensity_scores):.4f}")
-
-    plot_variance_comparison(original_var, adjusted_var, model_name)
-
-    plot_correlation_comparison(mean_corr_original, mean_corr_adjusted, model_name)
-
+# sensitivity Analysis for unobserved confounders
+def sensitivity_analysis(treatment_features, outcome, propensity_scores, unobserved_factor_strength=0.1):
     
-    plot_embeddings_scatter(original_embeddings, treatment_features, model_name, "Original")
-    plot_embeddings_scatter(adjusted_embeddings, treatment_features, model_name, "Adjusted")
+    """
+    Simulate the impact of unobserved confounders by adding noise to the treatment features
+    and checking the robustness of treatment effect estimates.
+    """
 
-    
-    residuals = (original_embeddings - adjusted_embeddings).flatten()
-    plot_residuals_distribution(residuals, model_name)
+    simulated_confounder = np.random.normal(0, unobserved_factor_strength, size=treatment_features.shape[0])
+    treatment_features_with_unobserved = np.hstack([treatment_features, simulated_confounder.reshape(-1, 1)])
+    new_propensity_scores, _ = calculate_propensity_scores(treatment_features_with_unobserved, outcome)
+    print(f"Mean change in propensity scores due to unobserved confounder: {np.mean(np.abs(new_propensity_scores - propensity_scores))}")
+
+# positivity Check
+def check_positivity(propensity_scores, threshold=0.05):
+    """
+    Check for violations of the positivity assumption.
+    """
+    extreme_scores = np.sum((propensity_scores < threshold) | (propensity_scores > 1 - threshold))
+    print(f"Number of extreme propensity scores (out of 100): {extreme_scores}")
+    if extreme_scores > 0:
+        print("Warning: Positivity assumption may be violated. Consider trimming extreme scores.")
+
+# balancing Diagnostics
+def perform_balancing_diagnostics(treatment_features, propensity_scores, weights):
+    """
+    Compare the distributions of covariates before and after weighting.
+    """
+    standardized_mean_differences = []
+    for i in range(treatment_features.shape[1]):
+        original_mean_diff = np.mean(treatment_features[outcome == 1, i]) - np.mean(treatment_features[outcome == 0, i])
+        weighted_mean_diff = (
+            np.average(treatment_features[outcome == 1, i], weights=weights[outcome == 1]) -
+            np.average(treatment_features[outcome == 0, i], weights=weights[outcome == 0])
+        )
+        standardized_mean_differences.append((original_mean_diff, weighted_mean_diff))
+
+    smd_df = pd.DataFrame(standardized_mean_differences, columns=["Original", "Weighted"])
+    smd_df.plot(kind="bar", figsize=(10, 6), rot=0)
+    plt.title("Standardized Mean Differences Before and After Weighting")
+    plt.xlabel("Covariates")
+    plt.ylabel("Standardized Mean Difference")
+    plt.tight_layout()
+    plt.savefig("balancing_diagnostics.png")
+    plt.show()
+
+# uncertainty quantification with bootstrapping
+def bootstrap_uncertainty(treatment_features, outcome, embeddings, n_bootstrap=100):
+    """
+    Use bootstrapping to estimate confidence intervals for treatment effects.
+    """
+    causal_effects = []
+    for _ in range(n_bootstrap):
+        sample_indices = np.random.choice(len(outcome), size=len(outcome), replace=True)
+        sample_treatment_features = treatment_features[sample_indices]
+        sample_outcome = outcome[sample_indices]
+        sample_embeddings = embeddings[sample_indices]
+
+        treated = sample_embeddings[sample_outcome == 1]
+        control = sample_embeddings[sample_outcome == 0]
+        causal_effects.append(np.mean(treated) - np.mean(control))
+
+    lower_bound = np.percentile(causal_effects, 2.5)
+    upper_bound = np.percentile(causal_effects, 97.5)
+    print(f"Estimated causal effect: {np.mean(causal_effects):.4f} (95% CI: {lower_bound:.4f}, {upper_bound:.4f})")
 
 
-    results.append({
-        "Model": model_name,
-        "Mean_Correlation_Original": mean_corr_original,
-        "Mean_Correlation_Adjusted": mean_corr_adjusted,
-        "Total_Variance_Original": original_var.sum(),
-        "Total_Variance_Adjusted": adjusted_var.sum(),
-        "Propensity_Scores_AUC": roc_auc_score(outcome, propensity_scores)
-    })
 
-results_df = pd.DataFrame(results)
-print(results_df)
+print(f"Processing model: {model_name}")
+
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModel.from_pretrained(model_name)
+model.eval()
+
+original_embeddings = extract_embeddings(texts, tokenizer, model)
+
+regressor = RandomForestRegressor(n_estimators=100, random_state=42)
+regressor.fit(treatment_features, original_embeddings)
+
+predicted_treatment_components = regressor.predict(treatment_features)
+
+alpha = 0.5  # fraction of treatment components to remove
+adjusted_embeddings = partial_residualization(original_embeddings, predicted_treatment_components, alpha=alpha)
+
+propensity_scores, weights = calculate_propensity_scores(treatment_features, outcome)
+
+sensitivity_analysis(treatment_features, outcome, propensity_scores)
+check_positivity(propensity_scores)
+perform_balancing_diagnostics(treatment_features, propensity_scores, weights)
+bootstrap_uncertainty(treatment_features, outcome, adjusted_embeddings)
+
+results_df = pd.DataFrame({
+    "Propensity Scores": propensity_scores,
+    "Weights": weights
+})
+results_df.to_csv("propensity_scores_and_weights.csv", index=False)
 
 
-results_df.to_csv("enhanced_partial_residualization_results.csv", index=False)
+#mutual information between embeddings and treatment
+mi_treatment = mutual_info_regression(original_embeddings, treatment_features[:, 0])
+print(f"Mutual Information with Treatment: {mi_treatment.mean()}")
 
+#mutual information between embeddings and outcome
+mi_outcome = mutual_info_regression(original_embeddings, outcome)
+print(f"Mutual Information with Outcome: {mi_outcome.mean()}")
+
+
+print("Analysis complete. Results saved.")
