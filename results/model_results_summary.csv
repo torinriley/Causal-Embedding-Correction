@@ -1,0 +1,4 @@
+Model,Mean_Correlation_Original,Mean_Correlation_Adjusted,Total_Variance_Original,Total_Variance_Adjusted,Propensity_Scores_AUC
+bert-base-uncased,0.136467,0.128146,3.250797,0.948399,0.998399
+roberta-base,0.125547,0.116035,0.304478,0.098043,0.998399
+distilbert-base-uncased,0.131884,0.122675,1.344522,0.40092,0.998399
