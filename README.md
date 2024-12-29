@@ -88,10 +88,10 @@ Histograms of residuals confirm the removal of treatment-related components, as 
     </tr>
     <tr>
         <td>
-           <img width="793" alt="Screenshot 2024-12-28 at 11 36 34 PM" src="https://github.com/user-attachments/assets/eebdece9-84d1-4b1a-b1b3-f476973ce6e1" />
+           <img width="978" alt="Screenshot 2024-12-29 at 12 05 05 AM" src="https://github.com/user-attachments/assets/0aca8d2a-02ba-4189-9759-e0e20ffb7747" />
         </td>
         <td>
-           <img width="794" alt="Screenshot 2024-12-28 at 11 38 00 PM" src="https://github.com/user-attachments/assets/55c5d128-5a3b-4181-91af-70cfc587f7ac" />
+           <img width="986" alt="Screenshot 2024-12-29 at 12 04 56 AM" src="https://github.com/user-attachments/assets/1ac5d6bb-a086-4296-9620-19c0774af69f" />
         </td>
     </tr>
 </table>
