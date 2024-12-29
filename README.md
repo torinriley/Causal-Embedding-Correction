@@ -39,8 +39,20 @@ To isolate and remove treatment-related information from embeddings, we use **Ra
    - The predicted treatment components are scaled by a parameter \(\alpha\) and subtracted from the original embeddings.
    - This method balances treatment de-biasing and the retention of meaningful information.
 
-#### **Correlation Calculation**
-To evaluate treatment leakage, we calculate the **mean absolute correlation** between embedding dimensions and treatment features.
+4. **Propensity Scoring:**
+   - To further enhance causal validity and address confounding bias, we integrate propensity scores into the methodology.
+
+     **Steps:**
+     
+   - A logistic regression model estimates the propensity scores, which represent the probability of receiving treatment given observed covariates.
+These scores are computed for each instance in the dataset based on the high-dimensional treatment features.
+Evaluate Propensity Scores:
+
+   - The AUC (Area Under the Curve) of the propensity model is calculated to validate its effectiveness.
+High AUC values indicate that the model accurately captures covariate information.
+
+   - The propensity scores are used to create inverse propensity weights. These weights adjust for covariate imbalances between treatment and control groups, mitigating confounding bias.
+
 ---
 
 ### **4. Validation and Visualizations**
