@@ -61,7 +61,7 @@ To evaluate the success of the residualization:
 
 ---
 
-## Results
+## Results of Regressive Residualization
 
 - **Correlation Metrics:**
   - Original Embeddings: High correlation with treatment variables.
